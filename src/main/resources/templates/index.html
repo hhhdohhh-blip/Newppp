@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Учет проектов студентов</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header class="topbar">
+    <a class="brand" href="/" aria-label="На главную"><span class="brand-mark">П</span><span>Проектный офис</span></a>
+    <span class="header-note">Учебные проекты · контроль сроков</span>
+</header>
+
+<main class="layout">
+    <section class="intro">
+        <div>
+            <p class="eyebrow">ПАНЕЛЬ УПРАВЛЕНИЯ</p>
+            <h1>Учет проектов<br>студентов</h1>
+            <p class="lead">Все учебные проекты и их сроки — в одном месте.</p>
+        </div>
+        <div class="stats" aria-label="Статистика проектов">
+            <div class="stat"><strong th:text="${total}">0</strong><span>всего проектов</span></div>
+            <div class="stat"><strong th:text="${active}">0</strong><span>в работе</span></div>
+            <div class="stat"><strong th:text="${completed}">0</strong><span>завершено</span></div>
+        </div>
+    </section>
+
+    <div class="notice success" th:if="${message}" th:text="${message}"></div>
+    <div class="notice error" th:if="${error}" th:text="${error}"></div>
+
+    <section class="content-grid">
+        <section class="panel form-panel">
+            <div class="panel-heading">
+                <div><p class="eyebrow">НОВАЯ ЗАПИСЬ</p><h2>Добавить проект</h2></div>
+                <span class="plus">+</span>
+            </div>
+            <form th:action="@{/projects}" method="post" class="project-form">
+                <label for="title">Название проекта</label>
+                <input id="title" name="title" type="text" maxlength="120" placeholder="Например, Campus Map" required>
+
+                <label for="studentName">Студент или команда</label>
+                <input id="studentName" name="studentName" type="text" maxlength="120" placeholder="Имя студента" required>
+
+                <label for="description">Краткое описание</label>
+                <textarea id="description" name="description" rows="3" maxlength="1000" placeholder="Цель и результат проекта"></textarea>
+
+                <label for="deadline">Срок сдачи</label>
+                <input id="deadline" name="deadline" type="date">
+
+                <button class="primary-button" type="submit">Добавить в список <span>→</span></button>
+            </form>
+        </section>
+
+        <section class="panel list-panel">
+            <div class="panel-heading list-heading">
+                <div><p class="eyebrow">ОБЩИЙ СПИСОК</p><h2>Проекты</h2></div>
+                <span class="count" th:text="|${total} записей|">0 записей</span>
+            </div>
+
+            <div class="empty-state" th:if="${#lists.isEmpty(projects)}">
+                <div class="empty-icon">✳</div>
+                <h3>Пока нет проектов</h3>
+                <p>Добавьте первую запись с помощью формы.</p>
+            </div>
+
+            <div class="project-list" th:unless="${#lists.isEmpty(projects)}">
+                <article class="project-card" th:each="project : ${projects}">
+                    <div class="project-main">
+                        <div class="project-symbol" th:text="${#strings.substring(project.title, 0, 1).toUpperCase()}">П</div>
+                        <div class="project-info">
+                            <h3 th:text="${project.title}">Название проекта</h3>
+                            <p class="student" th:text="${project.studentName}">Имя студента</p>
+                            <p class="description" th:if="${project.description != null and !project.description.isBlank()}" th:text="${project.description}"></p>
+                        </div>
+                    </div>
+                    <div class="project-meta">
+                        <div class="deadline"><span>Срок сдачи</span><strong th:text="${project.deadline != null ? project.deadline : 'Не указан'}">Не указан</strong></div>
+                        <form th:action="@{/projects/{id}/status(id=${project.id})}" method="post" class="status-form">
+                            <label class="visually-hidden" th:for="|status-${project.id}|">Статус проекта</label>
+                            <select name="status" th:id="|status-${project.id}|" onchange="this.form.submit()">
+                                <option th:each="status : ${statuses}" th:value="${status}" th:text="${status.label}" th:selected="${status == project.status}"></option>
+                            </select>
+                        </form>
+                        <form th:action="@{/projects/{id}/delete(id=${project.id})}" method="post" onsubmit="return confirm('Удалить этот проект?')">
+                            <button class="delete-button" type="submit" aria-label="Удалить проект" title="Удалить проект">×</button>
+                        </form>
+                    </div>
+                </article>
+            </div>
+        </section>
+    </section>
+    <footer>Система учета учебных проектов · Student Project Accounting</footer>
+</main>
+</body>
+</html>
